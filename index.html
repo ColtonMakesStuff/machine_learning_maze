@@ -8,15 +8,21 @@
 <body>
     <style>
         body {
-            background-color:  rgb(110, 103, 103);
+            background-color: rgb(110, 103, 103);
         }
     </style>
   
-   <!-- <script src="./js/data/collisions.js"></script>                                        -->
-  <script type="module" src="index.js" style="background-color: grey;">
-  </script>
-  <canvas id="myCanvas" width="900" height="900"></canvas>
+   <!-- <script src="./js/data/collisions.js"></script> -->
+   <script type="module" src="index.js" style="background-color: grey;">
+   </script>
+   <canvas id="myCanvas" width="900" height="900"></canvas>
+ 
+   <!-- Win and loss counters -->
+   <h1 id="winCounter">Wins: 0</h1>
+   <h1 id="lossCounter">Losses: 0</h1>
+   <!-- i need a button called newGameButton to be able to press -->
+   <button id="newGameButton" style="font-size: 30px; background-color: grey; border: 2px solid black; color: white; border-radius: 12px; padding: 20px;">New Game</button>
 
-
-</body>
+ </body>
+ 
 </html>

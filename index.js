@@ -1,15 +1,19 @@
 
 let canvas = document.getElementById('myCanvas');
 let c = canvas.getContext('2d');
+let isAnimating = true;
 
-
-c.fillStyle = '#FFFFFF'; // Set the fill color to white
+c.fillStyle = 'black'; // Set the fill color
 c.fillRect(0, 0, canvas.width, canvas.height); // Draw a rectangle covering the entire canvas
 
 let background
 let gravityAcceleration = .8
 let objects =[]
 
+let lossCountElement = document.getElementById('lossCounter');
+let lossCount = parseInt(lossCountElement.textContent.split(': ')[1]);
+let winCountElement = document.getElementById('winCounter');
+let winCount = parseInt(winCountElement.textContent.split(': ')[1]);
 let mazeData = [
     [1,1,1,1,1,1,1,1,1],
     [2,2,2,1,1,2,1,1,1],
@@ -105,20 +109,31 @@ class GamePiece {
 
         for (let i = 0; i < objects.length; i++) {
             if (this.position.x - 45 === objects[i].position.x && this.position.y - 45 === objects[i].position.y) {
-                if (objects[i].type !== 'open' && objects[i].type !== 'goal' && objects[i].type !== 'start') {
+                if (objects[i].type === 'dead') {
                     console.log("no no no")
                     for (let j = 0; j < objects.length; j++) {
                         if (objects[j].type !== 'dead') {
                         objects[j].color = 'pink'
                     }
+                    
+                    
+                    isAnimating = false;
+                    lossCount++;
+                    lossCountElement.textContent = 'Losses: ' + (lossCount);
                 }
                 } else if (objects[i].type === 'goal') {
                     console.log("you win")
+                    isAnimating = false;
+                    
+                    winCount++;
+                    winCountElement.textContent = 'Wins: ' + (winCount);
                     // i want to set all of the objects colers to dark green to show the game has been won
                     for (let j = 0; j < objects.length; j++) {
                         if (objects[j].type == 'dead') {
                         objects[j].color = 'grey'
+                       
                     }
+
                 }
                 } else if (objects[i].type === 'start') {
                     console.log("how did you end up here?????")
@@ -152,8 +167,8 @@ class GamePiece {
    color: 'purple'
  };
  
- let gamePiece = new GamePiece(gamePieceData);
- objects.push(gamePiece);
+ let gamePiece;
+ 
  
 
 
@@ -194,13 +209,18 @@ const createMaze = () => {
 window.onload = function() {
 console.log("starting game")  
 createMaze(); // Call the createMaze function
+ gamePiece = new GamePiece(gamePieceData);
+ objects.push(gamePiece);
 animate()
 
 }
 const animate = () => {
+    if (!isAnimating) {
+        return;
+    }
     window.requestAnimationFrame(animate);
   
-    c.fillStyle = '#FFFFFF'; // Set the fill color to white
+    c.fillStyle = 'black'; // Set the fill color to white
     c.fillRect(0, 0, canvas.width, canvas.height); // Draw a rectangle covering the entire canvas
   
     // First draw the squares
@@ -233,3 +253,16 @@ document.addEventListener('keydown', (event) => {
     }
 }
 )
+
+// i need to switch to having a start neww game button that starts the process of creating a new maze and gamePiece
+
+let newGameButton = document.getElementById('newGameButton')
+newGameButton.addEventListener('click', () => {
+    console.log("starting new game")
+    objects = []
+    createMaze()
+    gamePiece = new GamePiece(gamePieceData);
+    objects.push(gamePiece);
+    isAnimating = true;
+    animate()
+})
