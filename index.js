@@ -6,26 +6,46 @@ let isAnimating = true;
 c.fillStyle = 'black'; // Set the fill color
 c.fillRect(0, 0, canvas.width, canvas.height); // Draw a rectangle covering the entire canvas
 
-let background
-let gravityAcceleration = .8
+// Cestablishes array that will hold all of the objects in the game
 let objects =[]
 
-let lossCountElement = document.getElementById('lossCounter');
-let lossCount = parseInt(lossCountElement.textContent.split(': ')[1]);
-let winCountElement = document.getElementById('winCounter');
-let winCount = parseInt(winCountElement.textContent.split(': ')[1]);
+// get the win counter and parse its current amount to an integer
+let pointCounterElement = document.getElementById('pointCounter');
+let pointCount = parseInt(pointCounterElement.textContent.split(': ')[1]);
+
+let pointsScoredElement = document.getElementById('pointsScored');
+let pointsScored = parseInt(pointCounterElement.textContent.split(': ')[1]);
+
+
+// this is the data that will be used to create the maze
+// 1 = open
+// 2 = dead
+// 3 = goal
+// 0 = start
+
 let mazeData = [
     [1,1,1,1,1,1,1,1,1],
-    [2,2,2,1,1,2,1,1,1],
+    [2,2,0,1,1,2,1,1,1],
     [1,1,1,1,1,1,1,1,1],
     [1,1,2,2,2,1,1,1,1],
-    [1,1,1,1,0,1,1,1,2],
+    [1,1,1,1,2,1,1,1,2],
     [1,2,1,1,1,1,1,1,1],
     [1,2,1,1,2,2,2,2,1],
     [1,1,1,1,1,1,1,1,1],
-    [1,1,1,2,1,2,1,1,3],
+    [1,1,1,2,3,2,1,1,1],
 ]
 
+// this is to find the total points possible in the maze
+function countElements(mazeData) {
+    return mazeData.reduce((total, row) => total + row.length, 0);
+}
+
+let totalPoints = countElements(mazeData);
+
+
+
+
+// estableshes the square class
 class Square {
     constructor({x, y, color, type }) {
         this.position= {
@@ -46,16 +66,18 @@ class Square {
      }
 }
 
-let testSquare = {
+// this is a test square to make sure the square class is working
+let gameSquare = {
     x: 5,
     y: 5,
     color: 'green',
     type: 'open'
 }
 
-
+// estableshes the gamePiece 
 class GamePiece {
     constructor({x, y, radius, color}) {
+        this.pointsPossible = totalPoints;
         this.position = {
             x: x,
             y: y
@@ -69,87 +91,98 @@ class GamePiece {
         c.arc(this.position.x, this.position.y, this.radius, 0, 2 * Math.PI);
         c.fill();
     }
+    // this is the update method that will be called in the animate function
     update() {
         this.draw();
         this.checkCollision()
     }
-    moveLeft() {
-        if (this.position.x > 50) {
-        this.position.x -= 100;    
-        } else {
-            console.log("no, no left")
-        }
+    establishPointsPossible() {
+        pointCounterElement.textContent = 'Points Possible: ' + (this.pointsPossible);
     }
-    moveRight() {
-        if (this.position.x < 850) {
-        this.position.x += 100;
-        } else {
-            console.log("no, no right")
+    // moves the gamePiece in the direction of the arrow key pressed
+    move(direction) {
+        let newX = this.position.x;
+        let newY = this.position.y;
+        switch (direction) {
+            case 'left':
+                newX -= 100;
+                break;
+            case 'right':
+                newX += 100;
+                break;
+            case 'up':
+                newY -= 100;
+                break;
+            case 'down':
+                newY += 100;
+                break;
+            default:
+                console.error(`Invalid direction: ${direction}`);
+                return;
         }
-    }
-    moveUp() {
-        if (this.position.y > 50) {
-        this.position.y -= 100;
-        } else {
-            console.log("no, no up")
+    
+        if ((newX >= 50 && newX <= 850) && (newY >= 50 && newY <= 850)) {
+            if (this.checkBeforeMove(direction) !== 'nope') {
+                this.pointsPossible -= 1;
+                this.position.x = newX;
+                this.position.y = newY;
+            } else {
+                console.log(`No, no ${direction}`);
+                this.pointsPossible -= 20;
+            }
         }
+        console.log(`points possible: ${this.pointsPossible}`)
+        pointCounterElement.textContent = 'Points Possible: ' + (this.pointsPossible);
+
     }
-    moveDown() {
-        if (this.position.y < 850) {
-        this.position.y += 100;
-        } else {
-            console.log("no, no down")
-        }
-    }
-    checkCollision() {
-        //if the gamePiece is in the same position as a square that is not open goal or start, then the gamePiece should not be able to move in that direction
-        //for each object in the objects array, check if the gamePiece is in the same position as that object
-        //if it is, check if the object is not open, goal, or start
-        //if it is not, then the gamePiece should not be able to move in that direction
+    
+    checkBeforeMove( direction ) {
+   // I am changing my methods to be able to prevent the gamePiece from moving into a square that is not open, goal, or start
+        let potentialPosition;
+        direction === 'left' ? potentialPosition = {x: this.position.x - 100, y: this.position.y} : 
+        direction === 'right' ? potentialPosition = {x: this.position.x + 100, y: this.position.y} :
+        direction === 'up' ? potentialPosition = {x: this.position.x, y: this.position.y - 100} :
+        potentialPosition = {x: this.position.x, y: this.position.y + 100}
+
+
 
         for (let i = 0; i < objects.length; i++) {
-            if (this.position.x - 45 === objects[i].position.x && this.position.y - 45 === objects[i].position.y) {
+            if (potentialPosition.x - 45 === objects[i].position.x && potentialPosition.y - 45 === objects[i].position.y) {
                 if (objects[i].type === 'dead') {
-                    console.log("no no no")
-                    for (let j = 0; j < objects.length; j++) {
-                        if (objects[j].type !== 'dead') {
-                        objects[j].color = 'pink'
-                    }
-                    
-                    
-                    isAnimating = false;
-                    lossCount++;
-                    lossCountElement.textContent = 'Losses: ' + (lossCount);
-                }
-                } else if (objects[i].type === 'goal') {
-                    console.log("you win")
-                    isAnimating = false;
-                    
-                    winCount++;
-                    winCountElement.textContent = 'Wins: ' + (winCount);
-                    // i want to set all of the objects colers to dark green to show the game has been won
-                    for (let j = 0; j < objects.length; j++) {
-                        if (objects[j].type == 'dead') {
-                        objects[j].color = 'grey'
-                       
-                    }
-
-                }
-                } else if (objects[i].type === 'start') {
-                    console.log("how did you end up here?????")
-                } else {
-                    console.log("you're good to go")
-                    // i want to set the color of the one it landed on to a lime green to show that it's been visited
-                    objects[i].color = 'limegreen'
+                    return "nope"
                 }
             }
         }
+    
+   
+   
     }
 
- }
+    checkCollision() {
+        for (let i = 0; i < objects.length; i++) {
+            if (this.position.x - 45 === objects[i].position.x && this.position.y - 45 === objects[i].position.y) {
+                objects[i].type === 'goal' 
+                    ? (() => {
+                        console.log("you win");
+                        console.log(`total points: ', ${this.pointsPossible}`)
+                        isAnimating = false;
+                        for (let j = 0; j < objects.length; j++) {
+                            objects[j].type == 'dead' ? objects[j].color = 'grey' : null;
+                        }
+                     })()
+                    : objects[i].type === 'start'
+                        ? null
+                        : 
+                        objects[i].color = 'limegreen';
+                        
+            }
+        }
+    }
+}    
  
  let startPosition;
 
+ // this is the code that will find the start position of the gamePiece and set it to the startPosition variable
  for (let i = 0; i < mazeData.length; i++) {
     let startIndex = mazeData[i].indexOf(0);
     if (startIndex !== -1) {
@@ -161,6 +194,8 @@ class GamePiece {
     }
  }
  
+ // this is the data that will be used to create the gamePiece
+ // the gamePiece will start at the start position
  let gamePieceData = {
    ...startPosition,
    radius: 40,
@@ -173,7 +208,6 @@ class GamePiece {
 
 
 
-let firstSquare = new Square(testSquare)
 //so for each of the squares in the mazeData, we need to create a new square object and push it into the objects array
 const createMaze = () => {
     for (let i = 0; i < mazeData.length; i++) {
@@ -210,12 +244,15 @@ window.onload = function() {
 console.log("starting game")  
 createMaze(); // Call the createMaze function
  gamePiece = new GamePiece(gamePieceData);
+ gamePiece.establishPointsPossible()
  objects.push(gamePiece);
 animate()
 
 }
 const animate = () => {
     if (!isAnimating) {
+        // i need to update the pointsScored element with the points possible
+        pointsScoredElement.textContent = 'Points Scored: ' + (pointsScored + gamePiece.pointsPossible);
         return;
     }
     window.requestAnimationFrame(animate);
@@ -242,17 +279,32 @@ const animate = () => {
 //now i need to listen for keydowns of the arrow keys to be able to move the gamePiece for manual testing
 
 document.addEventListener('keydown', (event) => {
-    if (event.key === 'ArrowLeft') {
-        gamePiece.moveLeft();
-    } else if (event.key === 'ArrowRight') {
-        gamePiece.moveRight();
-    } else if (event.key === 'ArrowUp') {
-        gamePiece.moveUp();
-    } else if (event.key === 'ArrowDown') {
-        gamePiece.moveDown();
+    switch (event.key) {
+        case 'ArrowLeft':
+            gamePiece.move('left');
+            break;
+        case 'ArrowRight':
+            gamePiece.move('right');
+            break;
+        case 'ArrowUp':
+            gamePiece.move('up');
+            break;
+        case 'ArrowDown':
+            gamePiece.move('down');
+            break;
+        case 'Enter':
+            console.log("restarting...")
+            objects = []
+            createMaze()
+            gamePiece = new GamePiece(gamePieceData);
+            gamePiece.establishPointsPossible()
+            objects.push(gamePiece);
+            isAnimating = true;
+            animate()
+            break;
     }
-}
-)
+});
+
 
 // i need to switch to having a start neww game button that starts the process of creating a new maze and gamePiece
 
@@ -262,7 +314,10 @@ newGameButton.addEventListener('click', () => {
     objects = []
     createMaze()
     gamePiece = new GamePiece(gamePieceData);
+    gamePiece.establishPointsPossible()
     objects.push(gamePiece);
     isAnimating = true;
     animate()
 })
+
+
