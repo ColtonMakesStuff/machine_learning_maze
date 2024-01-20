@@ -16,7 +16,11 @@ let pointCount = parseInt(pointCounterElement.textContent.split(': ')[1]);
 let pointsScoredElement = document.getElementById('pointsScored');
 let pointsScored = parseInt(pointCounterElement.textContent.split(': ')[1]);
 
+let gamesPlayedElement = document.getElementById('gamesPlayed');
+let gamesPlayed = parseInt(gamesPlayedElement.textContent.split(': ')[1]);
 
+let games = 0;
+let score = 0;
 // this is the data that will be used to create the maze
 // 1 = open
 // 2 = dead
@@ -24,25 +28,32 @@ let pointsScored = parseInt(pointCounterElement.textContent.split(': ')[1]);
 // 0 = start
 
 let mazeData = [
-    [1,1,1,1,1,1,1,1,1],
-    [2,2,0,1,1,2,1,1,1],
+    [0,1,1,1,1,1,1,1,1],
+    [2,2,1,1,1,2,1,1,1],
     [1,1,1,1,1,1,1,1,1],
     [1,1,2,2,2,1,1,1,1],
     [1,1,1,1,2,1,1,1,2],
     [1,2,1,1,1,1,1,1,1],
-    [1,2,1,1,2,2,2,2,1],
+    [1,2,1,1,2,2,3,2,1],
     [1,1,1,1,1,1,1,1,1],
-    [1,1,1,2,3,2,1,1,1],
+    [1,1,1,2,2,2,1,1,1],
 ]
 
 // this is to find the total points possible in the maze
 function countElements(mazeData) {
-    return mazeData.reduce((total, row) => total + row.length, 0);
+    return mazeData.reduce((total, row) => total + row.length, 0)*10;
 }
 
 let totalPoints = countElements(mazeData);
 
 
+const adjustScores = () => {
+    gamesPlayed += 1;
+    gamesPlayedElement.textContent = 'Games Played: ' + (gamesPlayed);
+    console.log('test')
+    score += gamePiece.pointsPossible;
+    pointsScoredElement.textContent = 'Points Scored: ' + (score);
+}
 
 
 // estableshes the square class
@@ -101,6 +112,9 @@ class GamePiece {
     }
     // moves the gamePiece in the direction of the arrow key pressed
     move(direction) {
+        if (!isAnimating) {
+            return;
+        }
         let newX = this.position.x;
         let newY = this.position.y;
         switch (direction) {
@@ -165,6 +179,7 @@ class GamePiece {
                     ? (() => {
                         console.log("you win");
                         console.log(`total points: ', ${this.pointsPossible}`)
+                        adjustScores()
                         isAnimating = false;
                         for (let j = 0; j < objects.length; j++) {
                             objects[j].type == 'dead' ? objects[j].color = 'grey' : null;
@@ -249,10 +264,11 @@ createMaze(); // Call the createMaze function
 animate()
 
 }
+
+
 const animate = () => {
     if (!isAnimating) {
         // i need to update the pointsScored element with the points possible
-        pointsScoredElement.textContent = 'Points Scored: ' + (pointsScored + gamePiece.pointsPossible);
         return;
     }
     window.requestAnimationFrame(animate);
@@ -276,6 +292,7 @@ const animate = () => {
 
   }
   
+
 //now i need to listen for keydowns of the arrow keys to be able to move the gamePiece for manual testing
 
 document.addEventListener('keydown', (event) => {
@@ -300,7 +317,7 @@ document.addEventListener('keydown', (event) => {
             gamePiece.establishPointsPossible()
             objects.push(gamePiece);
             isAnimating = true;
-            animate()
+            animate();
             break;
     }
 });
@@ -317,7 +334,7 @@ newGameButton.addEventListener('click', () => {
     gamePiece.establishPointsPossible()
     objects.push(gamePiece);
     isAnimating = true;
-    animate()
+    animate();
 })
 
 
