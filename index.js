@@ -102,7 +102,7 @@ class GamePiece {
         }
         this.radius = radius;
         this.color = color;
-        this.mazeData = gameMazeData;
+        this.mazeData = gameMazeData.map(row => row.map(item => item));
         this.gamePieceIndex = {
             x: 0,
             y: 0
@@ -130,6 +130,7 @@ class GamePiece {
             
     }
     draw() {
+        this.findGamepiecePosition()
         c.fillStyle = this.color;
         c.beginPath();
         c.arc(this.position.x, this.position.y, this.radius, 0, 2 * Math.PI);
@@ -159,80 +160,7 @@ class GamePiece {
 
                 isAnimating = false;
     }
-    calculateNewPosition(direction) {
-        let newX = this.position.x;
-        let newY = this.position.y;
-        switch (direction) {
-            case 'left':
-                newX -= 100;
-                break;
-            case 'right':
-                newX += 100;
-                break;
-            case 'up':
-                newY -= 100;
-                break;
-            case 'down':
-                newY += 100;
-                break;
-            default:
-                console.error(`Invalid direction: ${direction}`);
-                return;
-        }
-        if (!isAnimating) {
-            return;
-        }
-    
-    return {x: newX, y: newY}
-    }
-    move(direction) {
-        
-        
-
-        if (!isAnimating) {
-            return;
-        }
-        let newX = this.calculateNewPosition(direction).x;
-        let newY = this.calculateNewPosition(direction).y;
-        let state;
-        let reward = -5;
-        let moved = false;
-        let type;
-
-        if ((newX >= 50 && newX <= 850) && (newY >= 50 && newY <= 850)) {
-
-            type = this.checkBeforeMove(direction).type;
-            reward = this.checkBeforeMove(direction).reward;
-            state = this.checkBeforeMove(direction).state;
-            moved = this.checkBeforeMove(direction).moved;
-    
-            // console.log(`state: ${state}`)
-            // console.log(`reward: ${reward}`)
-            // console.log(`moved: ${moved}`)
-            // console.log(`type: ${type}`)
-            //     // console.log(checks)
-    
-
-            if (type === 'dead') {
-                this.pointsPossible -= 10;
-            } else if (type === 'goal') {
-                this.position.x = newX;
-                this.position.y = newY;
-                this.handleGameOver()
-            } else {
-                this.pointsPossible -= 1;
-                this.position.x = newX;
-                this.position.y = newY;
-            }
-        }
-        // console.log(`points possible: ${this.pointsPossible}`)
-        pointCounterElement.textContent = 'Points Possible: ' + (this.pointsPossible);
-        return {
-            state: state,
-            reward: reward,
-            moved: moved
-        };
-    }
+ 
     moveGamePiece(direction) {
         if (!isAnimating) {
             return;
@@ -267,18 +195,42 @@ class GamePiece {
 
 
     }
+    checkBoundries(x, y) {
+        if (x < 0 || x > this.mazeData.length-1 || y < 0 || y > this.mazeData.length-1) {
+            console.log('out of bounds')
+            return false
+        } else { return true }
+    }
+    
     checkNewIndex(x, y, direction) {
     // i need to find where the new index lands as well as check to see if it is a wall or not
     // lets start by console logging the value at the new index
     let reward;
     let state;
     let action
+    let value;
+    if (this.checkBoundries(x, y) === false) {
+        console.log('out of bounds')
+        reward = -5;
+        state = `${this.gamePieceIndex.y},${this.gamePieceIndex.x}`
+        action = direction
+        return {
+            reward: reward,
+            state: state,
+            action: action
+        }
+    }
+    value = this.mazeData[y][x]
+
+    if (value === 2) {
+        console.log('hit a wall')
+                reward = -10;
+                state = `${this.gamePieceIndex.y},${this.gamePieceIndex.x}`
+                action = direction
+    } else if (value === 1) {
     console.log(`
     value at old index: ${this.mazeData[this.gamePieceIndex.y][this.gamePieceIndex.x]}
     value at new index: ${this.mazeData[y][x]}`)
-    let value = this.mazeData[y][x]
-if (value === 1 && x >= 0 && x <= this.mazeData.length-1 && y >= 0 && y <= this.mazeData.length-1) {
-    
     // now i need to change the value at the new index to 0 and the value at the old index to 1
             reward = 0;
             state = `${y},${x}`
@@ -288,6 +240,11 @@ if (value === 1 && x >= 0 && x <= this.mazeData.length-1 && y >= 0 && y <= this.
     this.mazeData[this.gamePieceIndex.y][this.gamePieceIndex.x] = 1;
     this.gamePieceIndex.x = x;
     this.gamePieceIndex.y = y;
+
+    for (let j = 0; j < objects.length; j++) {
+        objects[j].state == state ? objects[j].color = 'limegreen' : null;
+    }
+
     } else if (value === 3) {
 
             reward = 1000;
@@ -300,44 +257,12 @@ if (value === 1 && x >= 0 && x <= this.mazeData.length-1 && y >= 0 && y <= this.
     this.gamePieceIndex.y = y;
     this.handleGameOver()
 }
+return {
+    reward: reward,
+    state: state,
+    action: action
+}
 } 
-
-    checkBeforeMove( direction ) {
-        // this is the code that will determine the potential position of the gamePiece based on the direction
-        let potentialPosition;
-        direction === 'left' ? potentialPosition = {x: this.position.x - 100, y: this.position.y} : 
-        direction === 'right' ? potentialPosition = {x: this.position.x + 100, y: this.position.y} :
-        direction === 'up' ? potentialPosition = {x: this.position.x, y: this.position.y - 100} :
-        potentialPosition = {x: this.position.x, y: this.position.y + 100}
-        let moved = false;
-
-        // this is the code that will check the objects array to see if the potential position is open, goal, or start
-        for (let i = 0; i < objects.length; i++) {
-            if (potentialPosition.x - 45 === objects[i].position.x && potentialPosition.y - 45 === objects[i].position.y) {
-                // i need to check the goals type reward and state
-//                 console.log(`
-// type: ${objects[i].type}
-// reward: ${objects[i].reward}
-// state: ${objects[i].state}
-
-// `)
-                if (objects[i].type === 'dead') {
-
-                    return {type: 'dead', reward: objects[i].reward, state: objects[i].state, moved: moved}
-                } else if (objects[i].type === 'goal' ){
-                    moved = true;
-                   return {type: 'goal', reward: objects[i].reward, state: objects[i].state, moved: moved}
-                } else if  (objects[i].type === 'start'){
-                    moved = true;
-                    return {type: 'start', reward: objects[i].reward, state: objects[i].state, moved: moved}
-                } else {
-                    moved = true;
-                    objects[i].color = 'limegreen';
-                    return {type: 'open', reward: objects[i].reward, state: objects[i].state, moved: moved}
-                }
-            }
-        }
-    }
 }    
  
  let startPosition;
@@ -449,6 +374,7 @@ function restartGame() {
     gamePiece.establishPointsPossible();
     objects.push(gamePiece);
     isAnimating = true;
+    displayGameBoard(gamePiece.mazeData);
     animate();
 }
 
