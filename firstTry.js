@@ -29,10 +29,10 @@ let score = 0;
 // 0 = start
 
 let mazeData = [
-    [1,1,1,1,1,1,1,1,1],
+    [0,1,1,1,1,1,1,1,1],
     [2,2,1,1,1,2,1,1,1],
     [1,1,1,1,1,1,1,1,1],
-    [1,0,2,2,2,1,1,1,1],
+    [1,1,2,2,2,1,1,1,1],
     [1,1,1,1,2,1,1,1,2],
     [1,2,1,1,1,1,1,1,1],
     [1,2,1,1,2,2,3,2,1],
@@ -94,7 +94,7 @@ let gameSquare = {
 
 // estableshes the gamePiece 
 class GamePiece {
-    constructor({x, y, radius, color, gameMazeData}) {
+    constructor({x, y, radius, color}) {
         this.pointsPossible = totalPoints;
         this.position = {
             x: x,
@@ -102,32 +102,6 @@ class GamePiece {
         }
         this.radius = radius;
         this.color = color;
-        this.mazeData = gameMazeData;
-        this.gamePieceIndex = {
-            x: 0,
-            y: 0
-        }
-    }
-    findGamePieceIndex() {
-        for (let i = 0; i < this.mazeData.length; i++) {
-            let pieceIndex = this.mazeData[i].indexOf(0);
-            if (pieceIndex !== -1) {
-                this.gamePieceIndex = {
-                    x: pieceIndex,
-                    y: i 
-                };
-                console.log(`Index: ${this.gamePieceIndex.x}, ${this.gamePieceIndex.y}`)
-                break;
-            }
-        }
-    }
-    findGamepiecePosition() {
-
-                this.position = {
-                    x: this.gamePieceIndex.x * 100 + 50,
-                    y: this.gamePieceIndex.y * 100 + 50
-                }
-            
     }
     draw() {
         c.fillStyle = this.color;
@@ -186,9 +160,6 @@ class GamePiece {
     return {x: newX, y: newY}
     }
     move(direction) {
-        
-        
-
         if (!isAnimating) {
             return;
         }
@@ -233,75 +204,7 @@ class GamePiece {
             moved: moved
         };
     }
-    moveGamePiece(direction) {
-        if (!isAnimating) {
-            return;
-        }
-        this.findGamePieceIndex()
-        let tempX = this.gamePieceIndex.x;
-        let tempY = this.gamePieceIndex.y;
-        if (!isAnimating) {
-            return;
-        }
-        if (direction === 'left') {
-            tempX -= 1;
-        } else if (direction === 'right') {
-            tempX += 1;
-        } else if (direction === 'up') {
-            tempY -= 1;
-        } else if (direction === 'down') {
-            tempY += 1;
-        } else {
-            console.error(`Invalid direction: ${direction}`);
-            return;
-        }
-
-    console.log(`
-    direction: ${direction}
-    piece index: ${this.gamePieceIndex.x}, ${this.gamePieceIndex.y}
-    new index: ${tempX}, ${tempY}`)
-
-    this.checkNewIndex(tempX, tempY)
-    this.findGamePieceIndex()
-    displayGameBoard(this.mazeData);
-
-
-    }
-    checkNewIndex(x, y, direction) {
-    // i need to find where the new index lands as well as check to see if it is a wall or not
-    // lets start by console logging the value at the new index
-    let reward;
-    let state;
-    let action
-    console.log(`
-    value at old index: ${this.mazeData[this.gamePieceIndex.y][this.gamePieceIndex.x]}
-    value at new index: ${this.mazeData[y][x]}`)
-    let value = this.mazeData[y][x]
-if (value === 1 && x >= 0 && x <= this.mazeData.length-1 && y >= 0 && y <= this.mazeData.length-1) {
     
-    // now i need to change the value at the new index to 0 and the value at the old index to 1
-            reward = 0;
-            state = `${y},${x}`
-            action = direction
-
-    this.mazeData[y][x] = 0;
-    this.mazeData[this.gamePieceIndex.y][this.gamePieceIndex.x] = 1;
-    this.gamePieceIndex.x = x;
-    this.gamePieceIndex.y = y;
-    } else if (value === 3) {
-
-            reward = 1000;
-            state = `${y},${x}`
-            action = direction
-
-    this.mazeData[y][x] = 0;
-    this.mazeData[this.gamePieceIndex.y][this.gamePieceIndex.x] = 1;
-    this.gamePieceIndex.x = x;
-    this.gamePieceIndex.y = y;
-    this.handleGameOver()
-}
-} 
-
     checkBeforeMove( direction ) {
         // this is the code that will determine the potential position of the gamePiece based on the direction
         let potentialPosition;
@@ -343,25 +246,23 @@ if (value === 1 && x >= 0 && x <= this.mazeData.length-1 && y >= 0 && y <= this.
  let startPosition;
 
  // this is the code that will find the start position of the gamePiece based on the position in the maze and set it to the startPosition variable
-const findGamepiecePosition = () => { for (let i = 0; i < mazeData.length; i++) {
-    let pieceIndex = mazeData[i].indexOf(0);
-    if (pieceIndex !== -1) {
-        console.log(`start position: ${pieceIndex}, ${i}`)
+ for (let i = 0; i < mazeData.length; i++) {
+    let startIndex = mazeData[i].indexOf(0);
+    if (startIndex !== -1) {
         startPosition = {
-            x: pieceIndex * 100 + 50,
+            x: startIndex * 100 + 50,
             y: i * 100 + 50
         };
         break;
     }
- }}
- findGamepiecePosition()
+ }
+ 
  // this is the data that will be used to create the gamePiece
  // the gamePiece will start at the start position
  let gamePieceData = {
    ...startPosition,
    radius: 40,
-   color: 'purple',
-   gameMazeData: mazeData.map(row => row.map(item => item))
+   color: 'purple'
  };
  
  let gamePiece;
@@ -445,7 +346,6 @@ function restartGame() {
     objects = [];
     createMaze();
     gamePiece = new GamePiece(gamePieceData);
-    gamePiece.findGamePieceIndex();
     gamePiece.establishPointsPossible();
     objects.push(gamePiece);
     isAnimating = true;
@@ -456,20 +356,16 @@ function restartGame() {
 function handleKeyDown(event) {
     switch (event.key) {
         case 'ArrowLeft':
-            // gamePiece.move('left');
-            gamePiece.moveGamePiece('left');
+            gamePiece.move('left');
             break;
         case 'ArrowRight':
-            // gamePiece.move('right');
-            gamePiece.moveGamePiece('right');
+            gamePiece.move('right');
             break;
         case 'ArrowUp':
-            // gamePiece.move('up');
-            gamePiece.moveGamePiece('up');
+            gamePiece.move('up');
             break;
         case 'ArrowDown':
-            // gamePiece.move('down');
-            gamePiece.moveGamePiece('down');
+            gamePiece.move('down');
             break;
         case 'Enter':
             restartGame()
@@ -632,3 +528,4 @@ str = str.replace(/1/g, ' ').replace(/2/g, 'X').replace(/3/g, 'G').replace(/0/g,
 
     console.log(`\n =======================\n${str}\n =======================\n`);
 }
+displayGameBoard(tempMazeData);
