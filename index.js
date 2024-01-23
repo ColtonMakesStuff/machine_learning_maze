@@ -1,6 +1,6 @@
 
-const HIT_WALL_REWARD = -10;
-const OUT_OF_BOUNDS_REWARD = -5;
+const HIT_WALL_REWARD = -50;
+const OUT_OF_BOUNDS_REWARD = -100;
 const GOAL_REWARD = 1000;
 
 const canvas = document.getElementById('myCanvas');
@@ -30,15 +30,15 @@ let score = 0;
 // 0 = start
 
 let mazeData = [
-    [1,1,1,1,1,1,1,1,1],
-    [2,2,1,1,1,2,1,1,1],
-    [1,1,1,1,1,1,1,1,1],
-    [1,0,2,2,2,1,1,1,1],
+    [0,1,1,1,1,1,1,1,1],
+    [2,2,1,1,1,2,1,2,1],
+    [1,1,1,1,1,1,1,2,1],
+    [1,1,2,2,2,1,2,2,1],
     [1,1,1,1,2,1,1,1,2],
     [1,2,1,1,1,1,1,1,1],
-    [1,2,1,1,2,2,3,2,1],
-    [1,1,1,1,1,1,1,1,1],
-    [1,1,1,2,2,2,1,1,1],
+    [1,2,1,1,2,2,1,2,1],
+    [1,1,2,1,1,1,2,1,1],
+    [1,1,2,2,2,2,1,1,3],
 ]
 
 // i need to change the mazeData to have a square hight and width variable based on the canvas size and the number of squares in the mazeData
@@ -461,13 +461,12 @@ function handleKeyDown(event) {
             restartGame()
             break;
         case 'r':
-            randomSolver();
+            sarsa.runSarsa()
             break;
         case 'q':
             gameOver = true;
             break;
         case 's':
-            startSolver();
         break;
     }
     if (direction) {
@@ -487,78 +486,21 @@ newGameButton.addEventListener('click', () => {
     restartGame()
 })
 
-let randomNumber = null;
 
-const rollTheDice = () => {
-    if (isAnimating === true){
-        let action;
-
-        if (randomNumber === null) {
-            randomNumber = Math.floor(Math.random() * 4) + 1;  
-        }
-
-        let currentState = `${gamePiece.gamePieceIndex.y},${gamePiece.gamePieceIndex.x}`
-
-        switch (randomNumber) {
-            case 1: 
-                action = 'left';
-                break;
-            case 2: 
-                action = 'right';
-                break;
-            case 3: 
-                action = 'up';
-                break;
-            case 4: 
-                action = 'down';
-                break;
-        }
-
-        let SAR = gamePiece.moveGamePiece(action);
-
-        // temp code to choose next action
-        randomNumber = Math.floor(Math.random() * 4) + 1;
-        let nextAction;
-        switch (randomNumber) {
-            case 1: 
-                nextAction = 'left';
-                break;
-            case 2: 
-                nextAction = 'right';
-                break;
-            case 3: 
-                nextAction = 'up';
-                break;
-            case 4: 
-                nextAction = 'down';
-                break;
-        }
-        sarsa.checkQTableForState(SAR.state);
-        sarsa.printQTable();
-
-        console.log(`
-            ~~~~~~~~~~~~~~~~
-            State1: ${currentState}
-            Action1: ${SAR.action}
-            Reward: ${SAR.reward}
-            State2: ${SAR.state}
-            Action2: ${nextAction}
-            ~~~~~~~~~~~~~~~~`);
-        return;
-    }
-}
 
 class Sarsa {
     constructor() {
         this.qTable = {};
         this.alpha = 0.1;
         this.gamma = 0.9;
-        this.epsilon = 0.1;
+        this.epsilon = 0.5;
         this.numOfActions = 4;
         this.numOfIterations = 1000;
+        this.randomNumber = null;
+        this.terminalState = false;
     }
     printQTable() {
-        let output = ' ___________________\n|State | Q-values   |\n|  x y | ▲  ▼  ◄  ► |\n|______|____________|\n';
+        let output = ' ___________________\n|State | Q-values   |\n|  y x | ▲  ▼  ◄  ► |\n|______|____________|\n';
         for (let state in this.qTable) {
             output += `|  ${state} | ${this.qTable[state].join(', ')} |\n`;
         }
@@ -573,6 +515,122 @@ class Sarsa {
             this.addState(state);
         }
     }
+    chooseAction(state) {
+        this.checkQTableForState(state);
+        if (Math.random() < this.epsilon) {
+            return Math.floor(Math.random() * this.numOfActions) + 1;
+        } else {
+            console.log("chose the best action")
+            let qValues = this.qTable[state];
+            let maxQValue = Math.max(...qValues);
+            let bestActions = qValues.reduce((acc, val, idx) => val === maxQValue ? acc.concat(idx) : acc, []);
+            return bestActions[Math.floor(Math.random() * bestActions.length)] + 1;
+        }
+    }
+    setSolveInterval() {
+        setInterval(() => {
+            this.runSarsa();
+        }, 100);
+    }
+    checkTerminalState() {
+        if (isAnimating === false) {
+        this.terminalState = true;
+        }
+    }
+    runSarsa() {
+        // Reset the game state
+        restartGame();
+    
+        // Set an interval to run the SARSA algorithm every 0.5 seconds
+        let intervalId = setInterval(() => {
+            if (this.terminalState === false) {
+                let action;
+    
+                if (this.randomNumber === null) {
+                    this.randomNumber = Math.floor(Math.random() * 4) + 1;  
+                }
+    
+                let currentState = `${gamePiece.gamePieceIndex.y},${gamePiece.gamePieceIndex.x}`
+    
+                switch (this.randomNumber) {
+                    case 1: 
+                        action = 'up';
+                        break;
+                    case 2: 
+                        action = 'down';
+                        break;
+                    case 3: 
+                        action = 'left';
+                        break;
+                    case 4: 
+                        action = 'right';
+                        break;
+                }
+    
+                let SAR = gamePiece.moveGamePiece(action);
+    
+                // temp code to choose next action
+                this.randomNumber = sarsa.chooseAction(SAR.state)
+                let nextAction;
+                switch (this.randomNumber) {
+                    case 1: 
+                        nextAction = 'up';
+                        break;
+                    case 2: 
+                        nextAction = 'down';
+                        break;
+                    case 3: 
+                        nextAction = 'left';
+                        break;
+                    case 4: 
+                        nextAction = 'right';
+                        break;
+                }
+    
+                sarsa.checkQTableForState(SAR.state);
+                sarsa.printQTable();
+                console.log(this.randomNumber);
+                console.log(`
+                    ~~~~~~~~~~~~~~~~
+                    State1: ${currentState}
+                    Action1: ${SAR.action}
+                    Reward: ${SAR.reward}
+                    State2: ${SAR.state}
+                    Action2: ${nextAction}
+                    ~~~~~~~~~~~~~~~~`);
+                sarsa.updateQTable(currentState, SAR.action, SAR.reward, SAR.state, nextAction);
+            } else {
+                // Stop the interval if the terminal state has been reached
+                clearInterval(intervalId);
+            }
+        }, 1);
+    }
+    
+    updateQTable(state1, action1, reward, state2, action2) {
+    switch (action1) {
+        case 'up': action1 = 0; break;
+        case 'down': action1 = 1; break;
+        case 'left': action1 = 2; break;
+        case 'right': action1 = 3; break;
+    }
+    switch (action2) {
+        case 'up': action2 = 0; break;
+        case 'down': action2 = 1; break;
+        case 'left': action2 = 2; break;
+        case 'right': action2 = 3; break;
+    }
+    console.log(`my state 1 is ${state1}`)
+    console.log(`my state 2 is ${state2}`)
+    console.log(`my action 1 is ${action1}`)
+    console.log(`my action 2 is ${action2}`)
+    console.log(`my reward is ${reward}`)
+    
+    let qValue1 = this.qTable[state1][action1];
+    let qValue2 = this.qTable[state2][action2];
+    let newQValue = qValue1 + this.alpha * (reward + this.gamma * qValue2 - qValue1);
+    this.qTable[state1][action1] = newQValue;
+    this.printQTable();
+    }
 }
 
 let sarsa = new Sarsa();
@@ -582,8 +640,9 @@ sarsa.printQTable();
 
 
 const randomSolver = () => {
-    for (let i = 0; i < 1; i++) {
+    for (let i = 0; i < 100; i++) {
             rollTheDice()
+            restartGame()
     }
 }
 
@@ -607,23 +666,24 @@ let moves = 0;
 function gameLoop() {
     if (gameOver) {
         // Clear the interval if the game is over
-        clearInterval(intervalId);
+        restartGame()
     }
     // This function will be called every 2 seconds
     moves += 1;
 
     // Your game logic goes here...
     rollTheDice()
+    
     // Check if the game is over
     if (gameOver) {
         // Clear the interval if the game is over
-        clearInterval(intervalId);
+        restartGame()
     }
 }
 
 // Start the game loop
 const startSolver = () => {
-    intervalId = setInterval(gameLoop, 15);
+    intervalId = setInterval(gameLoop, 1);
 }
 
 // Somewhere else in your code, you can set gameOver to true to stop the game loop
