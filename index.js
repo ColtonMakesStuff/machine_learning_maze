@@ -1,6 +1,9 @@
 
+const HIT_WALL_REWARD = -10;
+const OUT_OF_BOUNDS_REWARD = -5;
+const GOAL_REWARD = 1000;
 
-let canvas = document.getElementById('myCanvas');
+const canvas = document.getElementById('myCanvas');
 let c = canvas.getContext('2d');
 let isAnimating = true;
 
@@ -13,13 +16,11 @@ let objects =[]
 // get the win counter and parse its current amount to an integer
 let pointCounterElement = document.getElementById('pointCounter');
 let pointCount = parseInt(pointCounterElement.textContent.split(': ')[1]);
-
 let pointsScoredElement = document.getElementById('pointsScored');
 let pointsScored = parseInt(pointCounterElement.textContent.split(': ')[1]);
-
 let gamesPlayedElement = document.getElementById('gamesPlayed');
 let gamesPlayed = parseInt(gamesPlayedElement.textContent.split(': ')[1]);
-
+let gameOver = false; // This variable will be used to control the interval
 let games = 0;
 let score = 0;
 // this is the data that will be used to create the maze
@@ -51,6 +52,20 @@ function countElements(mazeData) {
 
 let totalPoints = countElements(mazeData);
 
+const displayGameBoard = (mazeData) => {
+
+    //
+    // Add vertical bars to each row
+    mazeData = mazeData.map(row => `|| ${row.join(' ')} ||`);
+
+    // Add horizontal bars and join rows
+    let str = ' ' + mazeData.join(' \n ') + ' ';
+// now i need to find and replace all 2s in the string with Xs
+str = str.replace(/1/g, ' ').replace(/2/g, 'X').replace(/3/g, 'G').replace(/0/g, 'O');
+
+
+    console.log(`\n =======================\n${str}\n =======================\n`);
+}
 
 const adjustScores = () => {
     gamesPlayed += 1;
@@ -63,7 +78,7 @@ const adjustScores = () => {
 
 // estableshes the square class
 class Square {
-    constructor({x, y, color, type, state, reward, width, height }) {
+    constructor({x, y, color, type, state, width, height }) {
         this.position= {
             x: x,
             y: y
@@ -73,7 +88,6 @@ class Square {
         this.type = type
         this.color = color
         this.state = state
-        this.reward = reward
     }
     draw() {
         c.fillStyle = this.color
@@ -116,18 +130,15 @@ class GamePiece {
                     x: pieceIndex,
                     y: i 
                 };
-                console.log(`Index: ${this.gamePieceIndex.x}, ${this.gamePieceIndex.y}`)
                 break;
             }
         }
     }
     findGamepiecePosition() {
-
-                this.position = {
-                    x: this.gamePieceIndex.x * 100 + 50,
-                    y: this.gamePieceIndex.y * 100 + 50
-                }
-            
+        this.position = {
+            x: this.gamePieceIndex.x * 100 + 50,
+            y: this.gamePieceIndex.y * 100 + 50
+        }
     }
     draw() {
         this.findGamepiecePosition()
@@ -147,18 +158,18 @@ class GamePiece {
     handleGameOver() {
         console.log("game over");
         console.log("you win");
-                console.log(`total points: ', ${this.pointsPossible}`)
-                adjustScores()
-                for (let j = 0; j < objects.length; j++) {
-                    objects[j].type == 'dead' ? objects[j].color = 'grey' : null;
-                }
+        console.log(`total points: ', ${this.pointsPossible}`)
+        adjustScores()
+        for (let j = 0; j < objects.length; j++) {
+            objects[j].type == 'dead' ? objects[j].color = 'grey' : null;
+        }
 
-                //redraw everything in the canvas before stopping the animation so that things are viusally correct
-                c.fillStyle = 'black'; // Set the fill color to white
-                c.fillRect(0, 0, canvas.width, canvas.height); // Draw a rectangle covering the entire canvas
-                drawObjects()
-
-                isAnimating = false;
+        //redraw everything in the canvas before stopping the animation so that things are viusally correct
+        c.fillStyle = 'black'; // Set the fill color to white
+        c.fillRect(0, 0, canvas.width, canvas.height); // Draw a rectangle covering the entire canvas
+        drawObjects()
+        gameOver = true;
+        isAnimating = false;
     }
  
     moveGamePiece(direction) {
@@ -183,35 +194,27 @@ class GamePiece {
             console.error(`Invalid direction: ${direction}`);
             return;
         }
-
-    console.log(`
-    direction: ${direction}
-    piece index: ${this.gamePieceIndex.x}, ${this.gamePieceIndex.y}
-    new index: ${tempX}, ${tempY}`)
-
-    this.checkNewIndex(tempX, tempY)
-    this.findGamePieceIndex()
-    displayGameBoard(this.mazeData);
-
+        let details = this.checkNewIndex(tempX, tempY, direction)
+        this.findGamePieceIndex()
+        displayGameBoard(this.mazeData);
+        return {
+            reward: details.reward,
+            state: details.state,
+            action: details.action
+        }
 
     }
     checkBoundries(x, y) {
         if (x < 0 || x > this.mazeData.length-1 || y < 0 || y > this.mazeData.length-1) {
             console.log('out of bounds')
             return false
-        } else { return true }
+        } else { 
+            return true 
+        }
     }
-    
-    checkNewIndex(x, y, direction) {
-    // i need to find where the new index lands as well as check to see if it is a wall or not
-    // lets start by console logging the value at the new index
-    let reward;
-    let state;
-    let action
-    let value;
-    if (this.checkBoundries(x, y) === false) {
+    handleOutOfBounds(direction, reward, state, action) {
         console.log('out of bounds')
-        reward = -5;
+        reward = OUT_OF_BOUNDS_REWARD;
         state = `${this.gamePieceIndex.y},${this.gamePieceIndex.x}`
         action = direction
         return {
@@ -220,47 +223,88 @@ class GamePiece {
             action: action
         }
     }
+    handleWallCollision(direction, reward, state, action) {
+        console.log('hit a wall')
+        reward = HIT_WALL_REWARD;
+        state = `${this.gamePieceIndex.y},${this.gamePieceIndex.x}`
+        action = direction
+        this.pointsPossible -= 10;
+        return {
+            reward: reward,
+            state: state,
+            action: action
+        }
+    }
+    handleMoveToOpenSpace(x, y, direction, reward, state, action) {
+        // now i need to change the value at the new index to 0 and the value at the old index to 1
+                reward = 0;
+                state = `${y},${x}`
+                action = direction
+                this.pointsPossible -= 1;
+    
+        this.mazeData[y][x] = 0;
+        this.mazeData[this.gamePieceIndex.y][this.gamePieceIndex.x] = 1;
+        this.gamePieceIndex.x = x;
+        this.gamePieceIndex.y = y;
+    
+        for (let j = 0; j < objects.length; j++) {
+            if (objects[j].type !== 'start') {
+            objects[j].state == state ? objects[j].color = 'limegreen' : null;
+        }
+    }
+        return {
+            reward: reward,
+            state: state,
+            action: action
+        }
+    
+    }
+    handleGoalReached(x, y, direction, reward, state, action) {
+
+        reward = GOAL_REWARD;
+        state = `${y},${x}`
+        action = direction
+
+        this.mazeData[y][x] = 0;
+        this.mazeData[this.gamePieceIndex.y][this.gamePieceIndex.x] = 1;
+        this.gamePieceIndex.x = x;
+        this.gamePieceIndex.y = y;
+        let SAR = {
+            reward: reward,
+            state: state,
+            action: action
+        }
+        this.handleGameOver()
+        return SAR
+    }
+    checkNewIndex(x, y, direction) {
+    // i need to find where the new index lands as well as check to see if it is a wall or not
+
+    // lets start by console logging the value at the new index
+    let SAR;
+    let reward;
+    let state;
+    let action
+    let value;
+    if (this.checkBoundries(x, y) === false) {
+     SAR = this.handleOutOfBounds(direction, reward, state, action)
+     return SAR
+    }
     value = this.mazeData[y][x]
 
     if (value === 2) {
-        console.log('hit a wall')
-                reward = -10;
-                state = `${this.gamePieceIndex.y},${this.gamePieceIndex.x}`
-                action = direction
+    SAR = this.handleWallCollision(direction, reward, state, action)
     } else if (value === 1) {
-    console.log(`
-    value at old index: ${this.mazeData[this.gamePieceIndex.y][this.gamePieceIndex.x]}
-    value at new index: ${this.mazeData[y][x]}`)
-    // now i need to change the value at the new index to 0 and the value at the old index to 1
-            reward = 0;
-            state = `${y},${x}`
-            action = direction
-
-    this.mazeData[y][x] = 0;
-    this.mazeData[this.gamePieceIndex.y][this.gamePieceIndex.x] = 1;
-    this.gamePieceIndex.x = x;
-    this.gamePieceIndex.y = y;
-
-    for (let j = 0; j < objects.length; j++) {
-        objects[j].state == state ? objects[j].color = 'limegreen' : null;
-    }
-
+    SAR = this.handleMoveToOpenSpace(x, y, direction, reward, state, action)
     } else if (value === 3) {
-
-            reward = 1000;
-            state = `${y},${x}`
-            action = direction
-
-    this.mazeData[y][x] = 0;
-    this.mazeData[this.gamePieceIndex.y][this.gamePieceIndex.x] = 1;
-    this.gamePieceIndex.x = x;
-    this.gamePieceIndex.y = y;
-    this.handleGameOver()
+    SAR = this.handleGoalReached(x, y, direction, reward, state, action)
 }
+this.establishPointsPossible()
+
 return {
-    reward: reward,
-    state: state,
-    action: action
+    reward: SAR.reward,
+    state: SAR.state,
+    action: SAR.action
 }
 } 
 }    
@@ -285,7 +329,7 @@ const findGamepiecePosition = () => { for (let i = 0; i < mazeData.length; i++) 
  let gamePieceData = {
    ...startPosition,
    radius: 40,
-   color: 'purple',
+   color: 'black',
    gameMazeData: mazeData.map(row => row.map(item => item))
  };
  
@@ -296,45 +340,60 @@ const findGamepiecePosition = () => { for (let i = 0; i < mazeData.length; i++) 
 
 
 //so for each of the squares in the mazeData, we need to create a new square object and push it into the objects array
+const OPEN = 1;
+const DEAD = 2;
+const GOAL = 3;
+const START = 0;
+
+const createSquare = (i, j) => {
+    let color;
+    let type;
+    let state = `${i},${j}`;
+    let reward;
+
+    switch (mazeData[i][j]) {
+        case OPEN:
+            color = 'darkgreen';
+            type = 'open';
+            break;
+        case DEAD:
+            color = 'red';
+            type = 'dead';
+            break;
+        case GOAL:
+            color = 'gold';
+            type = 'goal';
+            break;
+        case START:
+            color = 'darkorange';
+            type = 'start';
+            reward = 0;
+            break;
+    }
+
+    let newSquare = {
+        x: j * squareWidth + gap/2,
+        y: i * squareHeight + gap/2,
+        color: color,
+        type: type,
+        state: state,
+        reward: reward,
+        height: squareHeight - gap,
+        width: squareWidth - gap
+    };
+
+    return new Square(newSquare);
+}
+
 const createMaze = () => {
     for (let i = 0; i < mazeData.length; i++) {
         for (let j = 0; j < mazeData[i].length; j++) {
-            let color;
-            let type;
-            let state = `${i},${j}`
-            let reward;
-            if (mazeData[i][j] === 1) {
-                color = 'darkgreen'
-                type = 'open'
-                reward = 0
-            } else if (mazeData[i][j] === 2) {
-                color = 'red'
-                type = 'dead'
-                reward = -10
-            } else if (mazeData[i][j] === 3) {
-                color = 'gold'
-                type = 'goal'
-                reward = 1000
-            } else if (mazeData[i][j] === 0) {
-                color = 'darkorange'
-                type = 'start'
-                reward = 0
-            }
-            let newSquare = {
-                x: j * squareWidth + gap/2,
-                y: i * squareHeight + gap/2,
-                color: color,
-                type: type,
-                state: state,
-                reward: reward,
-                height: squareHeight - gap,
-                width: squareWidth - gap
-            }
-            let square = new Square(newSquare)
-            objects.push(square)
+            let square = createSquare(i, j);
+            objects.push(square);
         }
     }
 }
+
 
 // this is the function that will draw all of the objects in the objects array
 function drawObjects() {
@@ -366,7 +425,9 @@ const animate = () => {
 //now i need to listen for keydowns of the arrow keys to be able to move the gamePiece for manual testing
 
 function restartGame() {
+    gameOver = true;
     console.log("Restarting game...");
+    gameOver = false;
     objects = [];
     createMaze();
     gamePiece = new GamePiece(gamePieceData);
@@ -378,24 +439,23 @@ function restartGame() {
     animate();
 }
 
+
+
 // this is the function that will handle the keydown events and move the gamePiece
 function handleKeyDown(event) {
+    let direction;
     switch (event.key) {
         case 'ArrowLeft':
-            // gamePiece.move('left');
-            gamePiece.moveGamePiece('left');
+            direction = 'left';
             break;
         case 'ArrowRight':
-            // gamePiece.move('right');
-            gamePiece.moveGamePiece('right');
+            direction = 'right';
             break;
         case 'ArrowUp':
-            // gamePiece.move('up');
-            gamePiece.moveGamePiece('up');
+            direction = 'up';
             break;
         case 'ArrowDown':
-            // gamePiece.move('down');
-            gamePiece.moveGamePiece('down');
+            direction = 'down';
             break;
         case 'Enter':
             restartGame()
@@ -403,6 +463,17 @@ function handleKeyDown(event) {
         case 'r':
             randomSolver();
             break;
+        case 'q':
+            gameOver = true;
+            break;
+        case 's':
+            startSolver();
+        break;
+    }
+    if (direction) {
+       
+        let SAR = gamePiece.moveGamePiece(direction)
+    
     }
 }
 
@@ -416,34 +487,98 @@ newGameButton.addEventListener('click', () => {
     restartGame()
 })
 
+let randomNumber = null;
+
 const rollTheDice = () => {
     if (isAnimating === true){
-    let details;
-    let action;
-    let randomNumber = Math.floor(Math.random() * 4) + 1;
-    randomNumber === 1 ? 
-    action = 'left' :
-    randomNumber === 2 ? 
-    action = 'right' :
-    randomNumber === 3 ? 
-    action = 'up' :
-    randomNumber === 4 ? 
-    action = 'down' : null;
-    details = gamePiece.move(action);
+        let action;
 
-    // i need to be able to log the state of the gamePiece and the reward for the move
+        if (randomNumber === null) {
+            randomNumber = Math.floor(Math.random() * 4) + 1;  
+        }
 
-    console.log(`
-    ~~~~~~~~~~~~~~~~
-    State: ${details.state}
-    Reward: ${details.reward}
-    Moved: ${details.moved}
-    Action: ${action}
-    ~~~~~~~~~~~~~~~~`);
-    return;
-};
+        let currentState = `${gamePiece.gamePieceIndex.y},${gamePiece.gamePieceIndex.x}`
+
+        switch (randomNumber) {
+            case 1: 
+                action = 'left';
+                break;
+            case 2: 
+                action = 'right';
+                break;
+            case 3: 
+                action = 'up';
+                break;
+            case 4: 
+                action = 'down';
+                break;
+        }
+
+        let SAR = gamePiece.moveGamePiece(action);
+
+        // temp code to choose next action
+        randomNumber = Math.floor(Math.random() * 4) + 1;
+        let nextAction;
+        switch (randomNumber) {
+            case 1: 
+                nextAction = 'left';
+                break;
+            case 2: 
+                nextAction = 'right';
+                break;
+            case 3: 
+                nextAction = 'up';
+                break;
+            case 4: 
+                nextAction = 'down';
+                break;
+        }
+        sarsa.checkQTableForState(SAR.state);
+        sarsa.printQTable();
+
+        console.log(`
+            ~~~~~~~~~~~~~~~~
+            State1: ${currentState}
+            Action1: ${SAR.action}
+            Reward: ${SAR.reward}
+            State2: ${SAR.state}
+            Action2: ${nextAction}
+            ~~~~~~~~~~~~~~~~`);
+        return;
+    }
 }
 
+class Sarsa {
+    constructor() {
+        this.qTable = {};
+        this.alpha = 0.1;
+        this.gamma = 0.9;
+        this.epsilon = 0.1;
+        this.numOfActions = 4;
+        this.numOfIterations = 1000;
+    }
+    printQTable() {
+        let output = ' ___________________\n|State | Q-values   |\n|  x y | ▲  ▼  ◄  ► |\n|______|____________|\n';
+        for (let state in this.qTable) {
+            output += `|  ${state} | ${this.qTable[state].join(', ')} |\n`;
+        }
+        output += '|______|____________|\n';
+        console.log(output);
+    }
+    addState(state) {
+        this.qTable[state] = Array(this.numOfActions).fill(0);
+    }
+    checkQTableForState(state) {
+        if (!this.qTable[state]) {
+            this.addState(state);
+        }
+    }
+}
+
+let sarsa = new Sarsa();
+sarsa.addState('0,0');
+sarsa.addState('0,1');
+sarsa.printQTable();
 
 
 const randomSolver = () => {
@@ -463,98 +598,32 @@ const randomSolver = () => {
 // | ...   | ...| ...  | ...  | ...   |
 // -------------------------------------
 
-// i need to  go back and associate a state with a position in the maze
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 
+let intervalId;
 
-
-
-
-
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// well f**k me...
-// i need to write this all over again for the q-learning algorithm
-// i need to create a new maze and gamePiece that are based solely on an array of arrays that represent the maze and the gamePiece position for the q-learning algorithm
-// s**t f**k d**n
-
-let tempMazeData = mazeData
-
-class  QMazing {
-    constructor({mazeData}) {
-        this.mazeData = mazeData;
-        this.gamePiece = {
-            x: 0,
-            y: 0,
-        };
-        this.goalPosition = {
-            x: 0,
-            y: 0
-        };
+let moves = 0;
+function gameLoop() {
+    if (gameOver) {
+        // Clear the interval if the game is over
+        clearInterval(intervalId);
     }
-    // this will find the initial position of the gamePiece based on the mazeData
-    findStartPosition() {
-        for (let i = 0; i < this.mazeData.length; i++) {
-            let startIndex = this.mazeData[i].indexOf(0);
-            if (startIndex !== -1) {
-                this.gamePiece.x = startIndex;
-                this.gamePiece.y = i;
-                console.log(`start position: ${this.gamePiece.x}, ${this.gamePiece.y}`)
-                break;
-            }
-        }
+    // This function will be called every 2 seconds
+    moves += 1;
+
+    // Your game logic goes here...
+    rollTheDice()
+    // Check if the game is over
+    if (gameOver) {
+        // Clear the interval if the game is over
+        clearInterval(intervalId);
     }
-    // this will find the goal position of the gamePiece based on the mazeData
-    findGoalPosition() {
-        for (let i = 0; i < this.mazeData.length; i++) {
-            let goalIndex = this.mazeData[i].indexOf(3);
-            if (goalIndex !== -1) {
-                this.goalPosition = {
-                    x: goalIndex,
-                    y: i
-                }
-                console.log(`goal position: ${this.goalPosition.x}, ${this.goalPosition.y}`)
-                break;
-            }
-        }
-    }
-    //initializeMaze 
-    initializeMaze() {
-       this.findGoalPosition();
-       this.findStartPosition();
-    }
-    // this will find where the gamePiece can would move based on input direction
-    findPotentialPosition(direction) {
-        let potentialPosition;
-        direction === 'left' ? potentialPosition = {x: this.gamePiece.x - 1, y: this.gamePiece.y} : 
-        direction === 'right' ? potentialPosition = {x: this.gamePiece.x + 1, y: this.gamePiece.y} :
-        direction === 'up' ? potentialPosition = {x: this.gamePiece.x, y: this.gamePiece.y - 1} :
-        potentialPosition = {x: this.gamePiece.x, y: this.gamePiece.y + 1}
-        return potentialPosition;
-    }
-    // this will find what the outcome will be based on the potential position
 }
 
-const qMaze = new QMazing({mazeData: tempMazeData})
-
-
-qMaze.initializeMaze()
-console.log(qMaze.findPotentialPosition('left'))
-
-
-
-function displayGameBoard(mazeData) {
-
-    //
-    // Add vertical bars to each row
-    mazeData = mazeData.map(row => `|| ${row.join(' ')} ||`);
-
-    // Add horizontal bars and join rows
-    let str = ' ' + mazeData.join(' \n ') + ' ';
-// now i need to find and replace all 2s in the string with Xs
-str = str.replace(/1/g, ' ').replace(/2/g, 'X').replace(/3/g, 'G').replace(/0/g, 'O');
-
-
-    console.log(`\n =======================\n${str}\n =======================\n`);
+// Start the game loop
+const startSolver = () => {
+    intervalId = setInterval(gameLoop, 15);
 }
+
+// Somewhere else in your code, you can set gameOver to true to stop the game loop
