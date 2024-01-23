@@ -35,9 +35,9 @@ let mazeData = [
     [1,1,1,1,1,1,1,2,1],
     [1,1,2,2,2,1,2,2,1],
     [1,1,1,1,2,1,1,1,2],
-    [1,2,1,1,1,1,1,1,1],
+    [1,2,1,2,1,1,2,1,2],
     [1,2,1,1,2,2,1,2,1],
-    [1,1,2,1,1,1,2,1,1],
+    [1,1,2,1,1,1,1,1,1],
     [1,1,2,2,2,2,1,1,3],
 ]
 
@@ -541,8 +541,12 @@ class Sarsa {
         // Reset the game state
         restartGame();
     
+        // Create a variable to hold the interval ID
+        let intervalId;
+    
         // Set an interval to run the SARSA algorithm every 0.5 seconds
-        let intervalId = setInterval(() => {
+        intervalId = setInterval(() => {
+            this.checkTerminalState();
             if (this.terminalState === false) {
                 let action;
     
@@ -602,9 +606,11 @@ class Sarsa {
             } else {
                 // Stop the interval if the terminal state has been reached
                 clearInterval(intervalId);
+                this.terminalState = false;
             }
         }, 1);
     }
+    
     
     updateQTable(state1, action1, reward, state2, action2) {
     switch (action1) {
