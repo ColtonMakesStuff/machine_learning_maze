@@ -30,15 +30,15 @@ let score = 0;
 // 0 = start
 
 let mazeData = [
-    [0,1,1,1,1,1,1,1,1],
+    [3,1,1,1,1,1,1,1,1],
     [2,2,1,1,1,2,1,2,1],
     [1,1,1,1,1,1,1,2,1],
     [1,1,2,2,2,1,2,2,1],
     [1,1,1,1,2,1,1,1,2],
-    [1,2,1,2,1,1,2,1,2],
-    [1,2,1,1,2,2,1,2,1],
+    [1,2,1,2,1,1,2,1,1],
+    [1,2,1,1,2,2,1,2,0],
     [1,1,2,1,1,1,1,1,1],
-    [1,1,2,2,2,2,1,1,3],
+    [1,1,2,2,2,2,1,1,1],
 ]
 
 // i need to change the mazeData to have a square hight and width variable based on the canvas size and the number of squares in the mazeData
@@ -461,7 +461,7 @@ function handleKeyDown(event) {
             restartGame()
             break;
         case 'r':
-            sarsa.runSarsa()
+            sarsa.runMultipleTimes(sarsa.numOfIterations)
             break;
         case 'q':
             gameOver = true;
@@ -498,6 +498,7 @@ class Sarsa {
         this.numOfIterations = 1000;
         this.randomNumber = null;
         this.terminalState = false;
+        this.decayRate = 0.9;
     }
     printQTable() {
         let output = ' ___________________\n|State | Q-values   |\n|  y x | ▲  ▼  ◄  ► |\n|______|____________|\n';
@@ -539,8 +540,6 @@ class Sarsa {
     }
     runSarsa() {
         // Reset the game state
-        restartGame();
-    
         // Create a variable to hold the interval ID
         let intervalId;
     
@@ -607,8 +606,34 @@ class Sarsa {
                 // Stop the interval if the terminal state has been reached
                 clearInterval(intervalId);
                 this.terminalState = false;
+                restartGame()
             }
         }, 1);
+    }
+    async runMultipleTimes(iterations) {
+        await Promise.all(Array.from({ length: iterations }, async (_, i) => {
+            // Reset the game state
+            restartGame();
+            this.epsilon *= this.decayRate;
+            this.epsilon = Math.max(this.epsilon, 0.01); 
+            // Run the SARSA algorithm
+            this.runSarsa();
+    
+            // Wait for the SARSA algorithm to finish before starting the next iteration
+            await new Promise(resolve => {
+                let intervalId = setInterval(() => {
+                    if (!this.terminalState) {
+                        // Continue waiting
+                        return;
+                    }
+    
+                    // Stop waiting and move to the next iteration
+                    clearInterval(intervalId);
+                    console.log(`Iteration ${i + 1} complete`);
+                    resolve();
+                }, 1000);
+            });
+        }));
     }
     
     
