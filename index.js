@@ -30,21 +30,126 @@ let score = 0;
 // 0 = start
 
 let mazeData = [
-    [3,1,1,1,1,1,1,1,1],
-    [2,2,1,1,1,2,1,2,1],
-    [1,1,1,1,1,1,1,2,1],
-    [1,1,2,2,2,1,2,2,1],
-    [1,1,1,1,2,1,1,1,2],
-    [1,2,1,2,1,1,2,1,1],
-    [1,2,1,1,2,2,1,2,0],
-    [1,1,2,1,1,1,1,1,1],
-    [1,1,2,2,2,2,1,1,1],
+    [0,1,1,2,1,2,1,1,1,2,1,2,2,1,1,1,1],
+    [2,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2,1],
+    [2,1,1,1,1,1,1,2,1,1,1,1,1,1,1,2,2],
+    [2,1,2,2,2,1,2,2,2,2,2,1,2,2,1,1,1],
+    [1,1,1,1,2,1,1,1,2,2,1,1,1,1,2,2,2],
+    [1,2,1,2,1,1,2,1,1,1,1,2,1,1,1,1,2],
+    [1,2,1,1,2,2,1,2,2,1,2,1,2,2,2,1,2],
+    [1,1,2,1,1,1,1,1,2,1,2,1,2,1,1,1,2],
+    [2,1,2,2,2,2,1,1,2,1,2,1,2,2,2,2,2],
+    [2,1,1,1,1,2,1,2,1,1,1,1,1,1,1,1,1],
+    [1,1,2,2,1,2,1,2,1,2,2,2,1,2,2,2,1],
+    [2,1,2,2,1,2,1,2,1,2,3,1,1,1,1,1,1],
+    [2,1,2,1,1,2,1,2,1,1,2,1,2,2,2,1,2],
+    [1,1,2,1,2,2,1,2,2,2,2,1,2,1,2,1,2],
+    [1,2,2,1,2,2,1,1,1,1,2,1,2,1,2,1,2],
+    [1,1,2,1,1,1,1,2,2,1,1,1,1,1,2,1,2],
+]
+let easierMazeData = [
+    [0,1,1,2,1,2,1,1,1,2,1,2,2,],
+    [2,2,1,2,1,2,1,2,1,2,1,2,1,],
+    [2,1,1,1,1,1,1,2,1,1,1,1,1,],
+    [2,1,2,2,2,1,2,2,2,2,2,1,2,],
+    [1,1,1,1,2,1,1,1,2,2,1,1,1,],
+    [1,2,1,2,1,1,2,1,1,1,1,2,1,],
+    [1,2,1,1,2,2,1,2,2,1,2,1,2,],
+    [1,1,2,1,1,1,1,1,2,1,2,1,2,],
+    [2,1,2,2,2,2,1,2,2,1,2,1,2,],
+    [2,1,1,1,1,2,1,2,1,1,1,1,1,],
+    [1,1,2,2,1,2,1,2,1,2,3,2,1,],
+    [2,1,2,2,1,2,1,1,1,2,2,1,1,],
 ]
 
-// i need to change the mazeData to have a square hight and width variable based on the canvas size and the number of squares in the mazeData
-let squareWidth = canvas.width / mazeData[0].length;
-let squareHeight = canvas.height / mazeData.length; 
-let gap = squareWidth / 10;
+let largerMazeData = [
+    [3,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,2,2,2,2,1,1,1,1,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+]
+// i want to be able to make the maze based on a number of rows and columns
+
+// this is the function that will create the maze
+function createMazeFromHL(rows, columns) {
+    let maze = [];
+    for (let i = 0; i < rows; i++) {
+        let row = [];
+        for (let j = 0; j < columns; j++) {
+            row.push(1);
+        }
+        maze.push(row);
+    }
+    return maze;
+}
+
+let testMaze = createMazeFromHL(17, 17);
+
+// now i need to add the start and goal to the maze at random locations
+function addStartAndGoal(maze) {
+    let start = {
+        x: Math.floor(Math.random() * maze[0].length),
+        y: Math.floor(Math.random() * maze.length)
+    };
+    let goal = {
+        x: Math.floor(Math.random() * maze[0].length),
+        y: Math.floor(Math.random() * maze.length)
+    };
+    if (start.x === goal.x && start.y === goal.y) {
+        return addStartAndGoal(maze);
+    }
+    maze[start.y][start.x] = 0;
+    maze[goal.y][goal.x] = 3;
+    return maze;
+}
+
+addStartAndGoal(testMaze);
+
+const addBarriers = (maze) => {
+for (let i = 0; i < maze.length; i++) {
+    for (let j = 0; j < maze[i].length; j++) {
+        // Skip 0s and 3s
+        if (maze[i][j] === 0 || maze[i][j] === 3) {
+            continue;
+        }
+        // Replace other cells with a 2 with a certain probability
+        if (Math.random() <= 0.35) {
+            maze[i][j] = 2;
+        }
+    }
+}
+return maze;
+}
+
+addBarriers(testMaze);
+
+
 // this is to find the total points possible in the maze
 function countElements(mazeData) {
     return mazeData.reduce((total, row) => total + row.length, 0)*10;
@@ -64,7 +169,7 @@ const displayGameBoard = (mazeData) => {
 str = str.replace(/1/g, ' ').replace(/2/g, 'X').replace(/3/g, 'G').replace(/0/g, 'O');
 
 
-    console.log(`\n =======================\n${str}\n =======================\n`);
+    console.log(`\n ==============================================\n${str}\n =============================================\n`);
 }
 
 const adjustScores = () => {
@@ -74,6 +179,62 @@ const adjustScores = () => {
     score += gamePiece.pointsPossible;
     pointsScoredElement.textContent = 'Points Scored: ' + (score);
 }
+
+
+//establish the maze class
+class Maze {
+    constructor({mazeData, c}) {
+        this.mazeData = mazeData
+        this.squareWidth = c.width/mazeData[0].length
+        this.squareHeight = c.height/mazeData.length
+        this.gamePieceRadius = (this.squareWidth*.8)/2
+        this.gap = this.squareWidth *.16
+        this.startPosition = null
+        this.goalPosition = null
+        this.totalPoints = countElements(mazeData)
+    }
+    placeholder() {
+        console.log(this.mazeData)
+        console.log(this.squareWidth)
+        console.log(this.squareHeight)
+        console.log(this.gap)
+        console.log(this.gamePieceRadius)
+        console.log(this.totalPoints)
+        console.log(this.startPosition)
+        console.log(this.goalPosition)
+    }
+    findGamePieceIndex() {
+        for (let i = 0; i < this.mazeData.length; i++) {
+            let pieceIndex = this.mazeData[i].indexOf(0);
+            if (pieceIndex !== -1) {
+                this.startPosition = {
+                    x: pieceIndex * this.squareWidth + this.gap / 2,
+                    y: i * this.squareHeight + this.gap / 2 
+                };
+                break;
+            }
+        }
+    }
+    findGoalIndex() {
+        for (let i = 0; i < this.mazeData.length; i++) {
+            let pieceIndex = this.mazeData[i].indexOf(3);
+            if (pieceIndex !== -1) {
+                this.goalPosition = {
+                    x: pieceIndex,
+                    y: i 
+                };
+                break;
+            }
+        }
+    }
+}
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//change the mazeData to the mazeData that you want to use~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+let maze  = new Maze({mazeData: easierMazeData, c: canvas})
+maze.findGamePieceIndex()
+maze.findGoalIndex()
+maze.placeholder()
 
 
 // estableshes the square class
@@ -98,13 +259,6 @@ class Square {
      }
 }
 
-// this is a test square to make sure the square class is working
-let gameSquare = {
-    x: 5,
-    y: 5,
-    color: 'green',
-    type: 'open'
-}
 
 // estableshes the gamePiece 
 class GamePiece {
@@ -136,8 +290,8 @@ class GamePiece {
     }
     findGamepiecePosition() {
         this.position = {
-            x: this.gamePieceIndex.x * 100 + 50,
-            y: this.gamePieceIndex.y * 100 + 50
+            x: this.gamePieceIndex.x * maze.squareWidth + ((maze.squareWidth) / 2),
+            y: this.gamePieceIndex.y * maze.squareHeight  + ((maze.squareHeight) / 2)
         }
     }
     draw() {
@@ -309,28 +463,13 @@ return {
 } 
 }    
  
- let startPosition;
-
- // this is the code that will find the start position of the gamePiece based on the position in the maze and set it to the startPosition variable
-const findGamepiecePosition = () => { for (let i = 0; i < mazeData.length; i++) {
-    let pieceIndex = mazeData[i].indexOf(0);
-    if (pieceIndex !== -1) {
-        console.log(`start position: ${pieceIndex}, ${i}`)
-        startPosition = {
-            x: pieceIndex * 100 + 50,
-            y: i * 100 + 50
-        };
-        break;
-    }
- }}
- findGamepiecePosition()
  // this is the data that will be used to create the gamePiece
  // the gamePiece will start at the start position
  let gamePieceData = {
-   ...startPosition,
-   radius: 40,
+   ...maze.startPosition,
+   radius: maze.gamePieceRadius,
    color: 'black',
-   gameMazeData: mazeData.map(row => row.map(item => item))
+   gameMazeData: maze.mazeData.map(row => row.map(item => item))
  };
  
  let gamePiece;
@@ -351,7 +490,7 @@ const createSquare = (i, j) => {
     let state = `${i},${j}`;
     let reward;
 
-    switch (mazeData[i][j]) {
+    switch (maze.mazeData[i][j]) {
         case OPEN:
             color = 'darkgreen';
             type = 'open';
@@ -372,22 +511,22 @@ const createSquare = (i, j) => {
     }
 
     let newSquare = {
-        x: j * squareWidth + gap/2,
-        y: i * squareHeight + gap/2,
+        x: j * maze.squareWidth + maze.gap / 2,
+        y: i * maze.squareHeight + maze.gap / 2,
         color: color,
         type: type,
         state: state,
         reward: reward,
-        height: squareHeight - gap,
-        width: squareWidth - gap
+        height: maze.squareHeight - maze.gap,
+        width: maze.squareWidth- maze.gap
     };
 
     return new Square(newSquare);
 }
 
 const createMaze = () => {
-    for (let i = 0; i < mazeData.length; i++) {
-        for (let j = 0; j < mazeData[i].length; j++) {
+    for (let i = 0; i < maze.mazeData.length; i++) {
+        for (let j = 0; j < maze.mazeData[i].length; j++) {
             let square = createSquare(i, j);
             objects.push(square);
         }
@@ -491,23 +630,27 @@ newGameButton.addEventListener('click', () => {
 class Sarsa {
     constructor() {
         this.qTable = {};
-        this.alpha = 0.1;
+        this.alpha = 0.5;
         this.gamma = 0.9;
-        this.epsilon = 0.5;
+        this.epsilon = 0.7;
         this.numOfActions = 4;
         this.numOfIterations = 1000;
         this.randomNumber = null;
         this.terminalState = false;
         this.decayRate = 0.9;
+        this.maxSteps = 800;
+        this.steps = 0;
     }
     printQTable() {
         let output = ' ___________________\n|State | Q-values   |\n|  y x | ▲  ▼  ◄  ► |\n|______|____________|\n';
         for (let state in this.qTable) {
-            output += `|  ${state} | ${this.qTable[state].join(', ')} |\n`;
+            let roundedQValues = this.qTable[state].map(val => Math.round(val));
+            output += `| ${state} | ${roundedQValues.join(', ')} \n`;
         }
         output += '|______|____________|\n';
         console.log(output);
     }
+    
     addState(state) {
         this.qTable[state] = Array(this.numOfActions).fill(0);
     }
@@ -521,7 +664,6 @@ class Sarsa {
         if (Math.random() < this.epsilon) {
             return Math.floor(Math.random() * this.numOfActions) + 1;
         } else {
-            console.log("chose the best action")
             let qValues = this.qTable[state];
             let maxQValue = Math.max(...qValues);
             let bestActions = qValues.reduce((acc, val, idx) => val === maxQValue ? acc.concat(idx) : acc, []);
@@ -545,8 +687,9 @@ class Sarsa {
     
         // Set an interval to run the SARSA algorithm every 0.5 seconds
         intervalId = setInterval(() => {
+            this.steps += 1;
             this.checkTerminalState();
-            if (this.terminalState === false) {
+            if (this.terminalState === false && this.steps < this.maxSteps) {
                 let action;
     
                 if (this.randomNumber === null) {
@@ -591,22 +734,24 @@ class Sarsa {
                 }
     
                 sarsa.checkQTableForState(SAR.state);
-                sarsa.printQTable();
-                console.log(this.randomNumber);
-                console.log(`
-                    ~~~~~~~~~~~~~~~~
-                    State1: ${currentState}
-                    Action1: ${SAR.action}
-                    Reward: ${SAR.reward}
-                    State2: ${SAR.state}
-                    Action2: ${nextAction}
-                    ~~~~~~~~~~~~~~~~`);
+                // sarsa.printQTable();
+                console.log(this.steps)
+                // console.log(this.randomNumber);
+                // console.log(`
+                //     ~~~~~~~~~~~~~~~~
+                //     State1: ${currentState}
+                //     Action1: ${SAR.action}
+                //     Reward: ${SAR.reward}
+                //     State2: ${SAR.state}
+                //     Action2: ${nextAction}
+                //     ~~~~~~~~~~~~~~~~`);
                 sarsa.updateQTable(currentState, SAR.action, SAR.reward, SAR.state, nextAction);
             } else {
                 // Stop the interval if the terminal state has been reached
                 clearInterval(intervalId);
                 this.terminalState = false;
                 restartGame()
+                this.steps = 0;
             }
         }, 1);
     }
@@ -634,6 +779,7 @@ class Sarsa {
                 }, 1000);
             });
         }));
+        this.printQTable();
     }
     
     
@@ -660,7 +806,7 @@ class Sarsa {
     let qValue2 = this.qTable[state2][action2];
     let newQValue = qValue1 + this.alpha * (reward + this.gamma * qValue2 - qValue1);
     this.qTable[state1][action1] = newQValue;
-    this.printQTable();
+    // this.printQTable();
     }
 }
 
@@ -714,7 +860,7 @@ function gameLoop() {
 
 // Start the game loop
 const startSolver = () => {
-    intervalId = setInterval(gameLoop, 1);
+    intervalId = setInterval(gameLoop, 5);
 }
 
 // Somewhere else in your code, you can set gameOver to true to stop the game loop
