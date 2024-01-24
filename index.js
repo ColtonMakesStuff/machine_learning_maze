@@ -580,50 +580,6 @@ function restartGame() {
 
 
 
-// this is the function that will handle the keydown events and move the gamePiece
-function handleKeyDown(event) {
-    let direction;
-    switch (event.key) {
-        case 'ArrowLeft':
-            direction = 'left';
-            break;
-        case 'ArrowRight':
-            direction = 'right';
-            break;
-        case 'ArrowUp':
-            direction = 'up';
-            break;
-        case 'ArrowDown':
-            direction = 'down';
-            break;
-        case 'Enter':
-            restartGame()
-            break;
-        case 'r':
-            sarsa.runMultipleTimes(sarsa.numOfIterations)
-            break;
-        case 'q':
-            gameOver = true;
-            break;
-        case 's':
-        break;
-    }
-    if (direction) {
-       
-        let SAR = gamePiece.moveGamePiece(direction)
-    
-    }
-}
-
-// this is the event listener that will listen for the keydown events and call the handleKeyDown function
-document.addEventListener('keydown', handleKeyDown);
-
-// i need to switch to having a start neww game button that starts the process of creating a new maze and gamePiece
-
-let newGameButton = document.getElementById('newGameButton')
-newGameButton.addEventListener('click', () => {
-    restartGame()
-})
 
 
 
@@ -863,4 +819,49 @@ const startSolver = () => {
     intervalId = setInterval(gameLoop, 5);
 }
 
-// Somewhere else in your code, you can set gameOver to true to stop the game loop
+
+
+// this is the function that will handle the keydown events and move the gamePiece
+function handleKeyDown(event) {
+    let direction;
+    switch (event.key) {
+        case 'ArrowLeft':
+            direction = 'left';
+            break;
+        case 'ArrowRight':
+            direction = 'right';
+            break;
+        case 'ArrowUp':
+            direction = 'up';
+            break;
+        case 'ArrowDown':
+            direction = 'down';
+            break;
+        case 'Enter':
+            restartGame()
+            break;
+        case 'r':
+            sarsa.runMultipleTimes(sarsa.numOfIterations)
+            break;
+        case 'q':
+            gameOver = true;
+            break;
+        case 's':
+        break;
+    }
+    if (direction) {
+       
+        let SAR = gamePiece.moveGamePiece(direction)
+    
+    }
+}
+
+// this is the event listener that will listen for the keydown events and call the handleKeyDown function
+document.addEventListener('keydown', handleKeyDown);
+
+// i need to switch to having a start neww game button that starts the process of creating a new maze and gamePiece
+
+let newGameButton = document.getElementById('newGameButton')
+newGameButton.addEventListener('click', () => {
+    restartGame()
+})
