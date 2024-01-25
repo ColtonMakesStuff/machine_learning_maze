@@ -8,7 +8,7 @@
 <body>
     <style>
         body {
-            background-color: rgb(110, 103, 103);
+            background-color: rgb(157, 151, 151);
         }
         .control-group {
     display: flex;
@@ -60,6 +60,9 @@ select {
    <!-- <script src="./js/data/collisions.js"></script> -->
    <script type="module" src="index.js">
    </script>
+   <h1 style="color: rgb(0, 0, 0) ; font-size: 50px;"> !!!!WARNING!!!!</h1>
+   <h1>epilepsy warning</h1>
+   <h1>THIS PROGRAM MOVES FASTS AND HAS FLASHING COLORS AND SCREENS DO NOT RUN IF YOU ARE SENSITIVE TO FLASHING LIGHTS</h1>
    <canvas id="myCanvas" width="900" height="900"></canvas>
  
    <!-- Win and loss counters -->
@@ -71,10 +74,11 @@ select {
    <!--  i need a generate maze button -->
    <!-- i need a dropdoen menu with the options easy hard and custom -->
 
-
+<h1>IMPORTANT! you must RESET the Q-TABLE before choosing differefnt settings if you have already run the learning program! </h1>
+<h2>If you do not it will try to use its knowledge of the old maze which will not work</h2>
    <div class="control-group">
-    <label for="difficulty">Difficulty</label>
-    <select id="difficulty" style="font-size: 30px; background-color: grey; border: 2px solid black; color: white; border-radius: 12px; padding: 20px;">
+    <label for="mazeSelect">Difficulty</label>
+    <select id="mazeSelect" style="font-size: 30px; background-color: grey; border: 2px solid black; color: white; border-radius: 12px; padding: 20px;">
         <!-- options -->
         <option value="easy">Easy</option>
         <option value="hard">Hard</option>
@@ -82,8 +86,8 @@ select {
     </select>
 </div>
 <div class="control-group">
-    <label for="size">Size (only applies to custom mazes)</label>
-    <select id="size" style="font-size: 30px; background-color: grey; border: 2px solid black; color: white; border-radius: 12px; padding: 20px;">
+    <label for="sizeSelect">Size (only applies to custom mazes)</label>
+    <select id="sizeSelect" style="font-size: 30px; background-color: grey; border: 2px solid black; color: white; border-radius: 12px; padding: 20px;">
         <!-- options -->
         <option value="5">5x5</option>
         <option value="6">6x6</option>
@@ -102,15 +106,15 @@ select {
         <option value="19">19x19</option>
         <option value="20">20x20</option>
     </select>
-    <button class="customButton" id="generateMazeButton" >Generate Maze</button>
+    <button class="customButton" id="restartButton" >Generate Maze</button>
 
 </div>
 <!-- Repeat for each control group -->
 
 
 <div class="control-group">
-    <label for="size">learning cycles</label>
-    <select id="size" style="font-size: 30px; background-color: grey; border: 2px solid black; color: white; border-radius: 12px; padding: 20px;">
+    <label for="cycleSelect">learning cycles</label>
+    <select id="cycleSelect" style="font-size: 30px; background-color: grey; border: 2px solid black; color: white; border-radius: 12px; padding: 20px;">
         <!-- options -->
         <option value="50">50</option>
         <option value="100">100</option>
@@ -118,9 +122,13 @@ select {
         <option value="1000">1000</option>    
     </select>
 
-<button class="customButton"  id="startLearningButton" >Start Learning</button>
-</div>
+<button class="customButton"  id="runSarsaButton" >Start Learning</button>
 
+
+<!--  i need ot make a reset q table button -->
+
+<button class="customButton" id="resetQTableButton" >Reset Q Table</button>
+</div>
    <!-- i need a button called newGameButton to be able to press
    <button id="newGameButton" style="font-size: 30px; background-color: grey; border: 2px solid black; color: white; border-radius: 12px; padding: 20px;">New Game</button> -->
 

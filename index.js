@@ -28,7 +28,6 @@ let score = 0;
 // 2 = dead
 // 3 = goal
 // 0 = start
-let mazeToUse = 'easierMazeData'
 let mazeSize = 5
 let learningCycle = 50
 let customMaze = false
@@ -98,7 +97,6 @@ function addStartAndGoal(maze) {
     return maze;
 }
 
-addStartAndGoal(customMazeData);
 
 const addBarriers = (maze) => {
 for (let i = 0; i < maze.length; i++) {
@@ -116,7 +114,7 @@ for (let i = 0; i < maze.length; i++) {
 return maze;
 }
 
-addBarriers(customMazeData);
+
 
 
 // this is to find the total points possible in the maze
@@ -145,6 +143,7 @@ const adjustScores = () => {
     pointsScoredElement.textContent = 'Points Scored: ' + (score);
 }
 
+let mazeToUse = easierMazeData
 
 //establish the maze class
 class Maze {
@@ -200,12 +199,16 @@ class Maze {
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //change the mazeData to the mazeData that you want to use~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-let maze  = new Maze({mazeData: harderMazeData, c: canvas})
+const establishMaze = () => {
+let maze  = new Maze({mazeData: mazeToUse, c: canvas})
 maze.findPoints(maze.mazeData)
 maze.findGamePieceIndex()
 maze.findGoalIndex()
 maze.placeholder()
-
+return maze
+}
+//!!!!!!!!!!!!!!!!!!!!!!!
+let maze; 
 
 // estableshes the square class
 class Square {
@@ -238,6 +241,7 @@ class GamePiece {
             x: x,
             y: y
         }
+        this.maze = maze
         this.radius = radius;
         this.color = color;
         this.mazeData = gameMazeData.map(row => row.map(item => item));
@@ -260,8 +264,8 @@ class GamePiece {
     }
     findGamepiecePosition() {
         this.position = {
-            x: this.gamePieceIndex.x * maze.squareWidth + ((maze.squareWidth) / 2),
-            y: this.gamePieceIndex.y * maze.squareHeight  + ((maze.squareHeight) / 2)
+            x: this.gamePieceIndex.x * this.maze.squareWidth + ((this.maze.squareWidth) / 2),
+            y: this.gamePieceIndex.y * this.maze.squareHeight  + ((this.maze.squareHeight) / 2)
         }
     }
     draw() {
@@ -432,17 +436,18 @@ return {
 }
 } 
 }    
- 
+let gamePieceData
  // this is the data that will be used to create the gamePiece
  // the gamePiece will start at the start position
- let gamePieceData = {
+const createGamePieceData = (maze) => {  return {
    ...maze.startPosition,
    radius: maze.gamePieceRadius,
    color: 'black',
    maze: maze,
    gameMazeData: maze.mazeData.map(row => row.map(item => item))
  };
- 
+ }
+
  let gamePiece;
  
  
@@ -538,8 +543,10 @@ function restartGame() {
     gameOver = true;
     console.log("Restarting game...");
     gameOver = false;
+    maze = establishMaze()
     objects = [];
     createMaze();
+    gamePieceData = createGamePieceData(maze)
     gamePiece = new GamePiece(gamePieceData);
     gamePiece.findGamePieceIndex();
     gamePiece.establishPointsPossible();
@@ -811,20 +818,6 @@ function handleKeyDown(event) {
         case 'Enter':
             restartGame()
             break;
-        case 'r':
-            sarsa.runMultipleTimes(sarsa.numOfIterations)
-            break;
-        case 'q':
-            gameOver = true;
-            break;
-        case 's':
-            maze = new Maze({mazeData: easierMazeData, c: canvas})
-            maze.findPoints(maze.mazeData)
-            maze.findGamePieceIndex()
-            maze.findGoalIndex()
-            maze.placeholder()
-            restartGame()
-        break;
     }
     if (direction) {
        
@@ -836,3 +829,134 @@ function handleKeyDown(event) {
 // this is the event listener that will listen for the keydown events and call the handleKeyDown function
 document.addEventListener('keydown', handleKeyDown);
 
+// now i need to take input from buttons to be able to restart the game and to be able to run the sarsa algorithm
+// this is the restart button
+
+const mazeSelect = document.getElementById('mazeSelect');
+mazeSelect.addEventListener('change', () => {
+    if (mazeSelect.value === 'easy') {
+        mazeToUse = easierMazeData
+    } else if (mazeSelect.value === 'hard') {
+        mazeToUse = harderMazeData
+    } else if (mazeSelect.value === 'custom') {
+        mazeToUse = customMazeData
+    }
+    console.log(mazeToUse)
+});
+
+
+
+const sizeSelect = document.getElementById('sizeSelect');
+sizeSelect.addEventListener('change', () => {
+    switch (sizeSelect.value) {
+        case '5':
+            mazeSize = 5
+            break;
+        case '6':
+            mazeSize = 6
+            break;
+        case '7':
+            mazeSize = 7
+            break;
+        case '8':
+            mazeSize = 8
+            break;
+        case '9':
+            mazeSize = 9
+            break;
+        case '10':
+            mazeSize = 10
+            break;
+        case '11':
+            mazeSize = 11
+            break;
+        case '12':
+            mazeSize = 12
+            break;
+        case '13':
+            mazeSize = 13
+            break;
+        case '14':
+            mazeSize = 14
+            break;
+        case '15':
+            mazeSize = 15
+            break;
+        case '16':
+            mazeSize = 16
+            break;
+        case '17':
+            mazeSize = 17
+            break;
+        case '18':
+            mazeSize = 18
+            break;
+        case '19':
+            mazeSize = 19
+            break;
+        case '20':
+            mazeSize = 20
+            break;
+    }
+    customMazeData = createMazeFromHL(mazeSize, mazeSize);
+    addStartAndGoal(customMazeData);
+    addBarriers(customMazeData);
+    console.log(mazeToUse)
+    if (mazeSelect.value === 'easy') {
+        mazeToUse = easierMazeData
+    } else if (mazeSelect.value === 'hard') {
+        mazeToUse = harderMazeData
+    } else if (mazeSelect.value === 'custom') {
+        mazeToUse = customMazeData
+    }
+    console.log(mazeToUse)
+});
+
+const cycleSelect = document.getElementById('cycleSelect');
+cycleSelect.addEventListener('change', () => {
+    switch (cycleSelect.value) {
+        case '50':
+            sarsa.numOfIterations = 50
+            break;
+        case '100':
+            sarsa.numOfIterations = 100
+            break;
+        case '500':
+            sarsa.numOfIterations = 500
+            break;
+        case '1000':
+            sarsa.numOfIterations = 1000
+            break;
+
+    }
+    console.log(mazeToUse)
+});
+
+
+
+
+const restartButton = document.getElementById('restartButton');
+restartButton.addEventListener('click', () => {
+    customMazeData = createMazeFromHL(mazeSize, mazeSize);
+    addStartAndGoal(customMazeData);
+    addBarriers(customMazeData);
+            restartGame()
+});
+
+// now i need to parse a drop down menu to be able to select the maze that i want to use
+
+
+// this is the run sarsa button
+const runSarsaButton = document.getElementById('runSarsaButton');
+runSarsaButton.addEventListener('click', () => {
+    sarsa.runMultipleTimes(sarsa.numOfIterations)
+});
+
+// now to make a reset q table button
+const resetQTableButton = document.getElementById('resetQTableButton');
+resetQTableButton.addEventListener('click', () => {
+    sarsa.qTable = {};
+    sarsa.addState('0,0');
+    sarsa.addState('0,1');
+    sarsa.printQTable();
+});
