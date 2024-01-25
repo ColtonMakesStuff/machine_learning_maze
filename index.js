@@ -28,26 +28,25 @@ let score = 0;
 // 2 = dead
 // 3 = goal
 // 0 = start
+let mazeToUse = 'easierMazeData'
+let mazeSize = 5
+let learningCycle = 50
+let customMaze = false
+let customMazeData;
 
-let mazeData = [
-    [0,1,1,2,1,2,1,1,1,2,1,2,2,1,1,1,1],
-    [2,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2,1],
-    [2,1,1,1,1,1,1,2,1,1,1,1,1,1,1,2,2],
-    [2,1,2,2,2,1,2,2,2,2,2,1,2,2,1,1,1],
-    [1,1,1,1,2,1,1,1,2,2,1,1,1,1,2,2,2],
-    [1,2,1,2,1,1,2,1,1,1,1,2,1,1,1,1,2],
-    [1,2,1,1,2,2,1,2,2,1,2,1,2,2,2,1,2],
-    [1,1,2,1,1,1,1,1,2,1,2,1,2,1,1,1,2],
-    [2,1,2,2,2,2,1,1,2,1,2,1,2,2,2,2,2],
-    [2,1,1,1,1,2,1,2,1,1,1,1,1,1,1,1,1],
-    [1,1,2,2,1,2,1,2,1,2,2,2,1,2,2,2,1],
-    [2,1,2,2,1,2,1,2,1,2,3,1,1,1,1,1,1],
-    [2,1,2,1,1,2,1,2,1,1,2,1,2,2,2,1,2],
-    [1,1,2,1,2,2,1,2,2,2,2,1,2,1,2,1,2],
-    [1,2,2,1,2,2,1,1,1,1,2,1,2,1,2,1,2],
-    [1,1,2,1,1,1,1,2,2,1,1,1,1,1,2,1,2],
-]
+
 let easierMazeData = [
+    [0,2,1,2,2,2,2,2,2,],
+    [1,2,1,2,1,1,1,1,1,],
+    [1,1,1,1,1,2,1,2,1,],
+    [2,1,2,2,2,2,1,2,2,],
+    [1,1,1,1,2,1,1,1,2,],
+    [1,2,1,2,1,1,2,1,1,],
+    [1,2,1,1,2,1,2,2,2,],
+    [1,1,2,1,2,1,1,1,3,],
+    [2,1,2,1,2,2,2,2,2,]
+]
+let harderMazeData = [
     [0,1,1,2,1,2,1,1,1,2,1,2,2,],
     [2,2,1,2,1,2,1,2,1,2,1,2,1,],
     [2,1,1,1,1,1,1,2,1,1,1,1,1,],
@@ -62,38 +61,8 @@ let easierMazeData = [
     [2,1,2,2,1,2,1,1,1,2,2,1,1,],
 ]
 
-let largerMazeData = [
-    [3,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-    [1,1,1,1,1,1,1,2,2,2,2,1,1,1,1,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1],
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
-]
+
+
 // i want to be able to make the maze based on a number of rows and columns
 
 // this is the function that will create the maze
@@ -109,7 +78,7 @@ function createMazeFromHL(rows, columns) {
     return maze;
 }
 
-let testMaze = createMazeFromHL(17, 17);
+customMazeData = createMazeFromHL(mazeSize, mazeSize);
 
 // now i need to add the start and goal to the maze at random locations
 function addStartAndGoal(maze) {
@@ -129,7 +98,7 @@ function addStartAndGoal(maze) {
     return maze;
 }
 
-addStartAndGoal(testMaze);
+addStartAndGoal(customMazeData);
 
 const addBarriers = (maze) => {
 for (let i = 0; i < maze.length; i++) {
@@ -147,15 +116,11 @@ for (let i = 0; i < maze.length; i++) {
 return maze;
 }
 
-addBarriers(testMaze);
+addBarriers(customMazeData);
 
 
 // this is to find the total points possible in the maze
-function countElements(mazeData) {
-    return mazeData.reduce((total, row) => total + row.length, 0)*10;
-}
 
-let totalPoints = countElements(mazeData);
 
 const displayGameBoard = (mazeData) => {
 
@@ -191,7 +156,11 @@ class Maze {
         this.gap = this.squareWidth *.16
         this.startPosition = null
         this.goalPosition = null
-        this.totalPoints = countElements(mazeData)
+        this.totalPoints = null
+    }
+    findPoints(){
+            this.totalPoints = this.mazeData.reduce((total, row) => total + row.length, 0)*10;
+            console.log(this.totalPoints)
     }
     placeholder() {
         console.log(this.mazeData)
@@ -231,7 +200,8 @@ class Maze {
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //change the mazeData to the mazeData that you want to use~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-let maze  = new Maze({mazeData: easierMazeData, c: canvas})
+let maze  = new Maze({mazeData: harderMazeData, c: canvas})
+maze.findPoints(maze.mazeData)
 maze.findGamePieceIndex()
 maze.findGoalIndex()
 maze.placeholder()
@@ -262,8 +232,8 @@ class Square {
 
 // estableshes the gamePiece 
 class GamePiece {
-    constructor({x, y, radius, color, gameMazeData}) {
-        this.pointsPossible = totalPoints;
+    constructor({x, y, radius, color, gameMazeData, maze}) {
+        this.pointsPossible = maze.totalPoints;
         this.position = {
             x: x,
             y: y
@@ -469,6 +439,7 @@ return {
    ...maze.startPosition,
    radius: maze.gamePieceRadius,
    color: 'black',
+   maze: maze,
    gameMazeData: maze.mazeData.map(row => row.map(item => item))
  };
  
@@ -590,7 +561,7 @@ class Sarsa {
         this.gamma = 0.9;
         this.epsilon = 0.7;
         this.numOfActions = 4;
-        this.numOfIterations = 1000;
+        this.numOfIterations = learningCycle;
         this.randomNumber = null;
         this.terminalState = false;
         this.decayRate = 0.9;
@@ -709,7 +680,7 @@ class Sarsa {
                 restartGame()
                 this.steps = 0;
             }
-        }, 1);
+        }, 10);
     }
     async runMultipleTimes(iterations) {
         await Promise.all(Array.from({ length: iterations }, async (_, i) => {
@@ -847,6 +818,12 @@ function handleKeyDown(event) {
             gameOver = true;
             break;
         case 's':
+            maze = new Maze({mazeData: easierMazeData, c: canvas})
+            maze.findPoints(maze.mazeData)
+            maze.findGamePieceIndex()
+            maze.findGoalIndex()
+            maze.placeholder()
+            restartGame()
         break;
     }
     if (direction) {
@@ -859,9 +836,3 @@ function handleKeyDown(event) {
 // this is the event listener that will listen for the keydown events and call the handleKeyDown function
 document.addEventListener('keydown', handleKeyDown);
 
-// i need to switch to having a start neww game button that starts the process of creating a new maze and gamePiece
-
-let newGameButton = document.getElementById('newGameButton')
-newGameButton.addEventListener('click', () => {
-    restartGame()
-})
